@@ -41,33 +41,34 @@ export const allTraits: Trait[] = [
 
 type Screen = 'players' | 'startGame' | 'atNight';
 
-type CharUndef = Character | undefined;
+type PlayerUndef = string | undefined;
 
 export const Game: FunctionComponent = (): ReactElement => {
   const [ characters, setCharacters ] = useState([] as Character[]);
   const [ traits, setTraits ] = useState([] as Trait[]);
   const [ screen, setScreen ] = useState('players' as Screen);
-  const [ gossipmongerChoices, setGossipmongerChoices ] = useState<[CharUndef, CharUndef]>([undefined, undefined]);
-  const [ investigatorChoice, setInvestigatorChoice ] = useState<CharUndef>(undefined);
-  const [ medicineDoctorChoices, setMedicineDoctorChoices ] = useState<[CharUndef, CharUndef]>([undefined, undefined]);
-  const [ grandParentChoice, setGrandParentChoice ] = useState<CharUndef>(undefined);
-  const [ townguardChoices, setTownguardChoices ] = useState<[CharUndef, CharUndef]>([undefined, undefined]);
-  const [ fortuneTellerChoice, setFortuneTellerChoice ] = useState<CharUndef>(undefined);
-  const [ executedToday, setExecutedToday ] = useState<CharUndef>(undefined);
-  const [ bardChoices, setBardChoices ] = useState<[CharUndef, CharUndef]>([undefined, undefined]);
-  const [ drunkFromBardChoice, setDrunkFromBardChoice ] = useState<CharUndef>(undefined);
-  const [ fortuneTellerChoices, setFortuneTellerChoices ] = useState<[CharUndef, CharUndef]>([undefined, undefined]);
-  const [ poisonerChoice, setPoisonerChoice ] = useState<CharUndef>(undefined);
-  const [ spyChoice, setSpyChoice ] = useState<CharUndef>(undefined);
-  const [ heroChoice, setHeroChoice ] = useState<CharUndef>(undefined);
-  const [ clericChoice, setClericChoice ] = useState<CharUndef>(undefined);
-  const [ madMagicianChoice, setMadMagicianChoice ] = useState<CharUndef>(undefined);
-  const [ grimReaperChoice, setGrimReaperChoice ] = useState<CharUndef>(undefined);
-  const [ vampireSpawnChoice, setVampireSpawnChoice ] = useState<CharUndef>(undefined);
-  const [ vampireChoice, setVampireChoice ] = useState<CharUndef>(undefined);
-  const [ assassinChoice, setAssassinChoice ] = useState<CharUndef>(undefined);
-  const [ bedmakerChoices, setBedmakerChoices ] = useState<[CharUndef, CharUndef]>([undefined, undefined]);
-  
+  const [ gossipmongerChoices, setGossipmongerChoices ] = useState<[PlayerUndef, PlayerUndef]>([undefined, undefined]);
+  const [ investigatorChoice, setInvestigatorChoice ] = useState<PlayerUndef>(undefined);
+  const [ medicineDoctorChoices, setMedicineDoctorChoices ] = useState<[PlayerUndef, PlayerUndef]>([undefined, undefined]);
+  const [ grandParentChoice, setGrandParentChoice ] = useState<PlayerUndef>(undefined);
+  const [ townguardChoices, setTownguardChoices ] = useState<[PlayerUndef, PlayerUndef]>([undefined, undefined]);
+  const [ fortuneTellerChoice, setFortuneTellerChoice ] = useState<PlayerUndef>(undefined);
+  const [ executedToday, setExecutedToday ] = useState<PlayerUndef>(undefined);
+  const [ bardChoices, setBardChoices ] = useState<[PlayerUndef, PlayerUndef]>([undefined, undefined]);
+  const [ drunkFromBardChoice, setDrunkFromBardChoice ] = useState<PlayerUndef>(undefined);
+  const [ fortuneTellerChoices, setFortuneTellerChoices ] = useState<[PlayerUndef, PlayerUndef]>([undefined, undefined]);
+  const [ poisonerChoice, setPoisonerChoice ] = useState<PlayerUndef>(undefined);
+  const [ spyChoice, setSpyChoice ] = useState<PlayerUndef>(undefined);
+  const [ heroChoice, setHeroChoice ] = useState<PlayerUndef>(undefined);
+  const [ clericChoice, setClericChoice ] = useState<PlayerUndef>(undefined);
+  const [ madMagicianChoice, setMadMagicianChoice ] = useState<PlayerUndef>(undefined);
+  const [ grimReaperChoice, setGrimReaperChoice ] = useState<PlayerUndef>(undefined);
+  const [ vampireSpawnChoice, setVampireSpawnChoice ] = useState<PlayerUndef>(undefined);
+  const [ vampireChoice, setVampireChoice ] = useState<PlayerUndef>(undefined);
+  const [ assassinChoice, setAssassinChoice ] = useState<PlayerUndef>(undefined);
+  const [ bedmakerChoices, setBedmakerChoices ] = useState<[PlayerUndef, PlayerUndef]>([undefined, undefined]);
+  const [ jsonGameState, setJsonGameState ] = useState('');
+
   useEffect(() => {
     const includedCharacters = allCharacters.filter(character => character.includeInGame);
     const includedTraits = allTraits.filter(trait => trait.includeInGame);
@@ -89,7 +90,6 @@ export const Game: FunctionComponent = (): ReactElement => {
     if (index === -1) {
       console.error('Could not find character', character);
     }
-    console.log(index, character);
     updateCharacter(index, character);
   };
 
@@ -97,6 +97,59 @@ export const Game: FunctionComponent = (): ReactElement => {
     const tr = traits.map(c => c.copy());
     tr[index] = trait;
     setTraits(tr);
+  };
+
+  const saveGame = () => {
+    setJsonGameState(JSON.stringify({
+      characters: characters.map(c => c.json()),
+      traits: traits.map(t => t.json()),
+      gossipmongerChoices,
+      investigatorChoice,
+      medicineDoctorChoices,
+      grandParentChoice,
+      townguardChoices,
+      fortuneTellerChoice,
+      executedToday,
+      bardChoices,
+      drunkFromBardChoice,
+      fortuneTellerChoices,
+      poisonerChoice,
+      spyChoice,
+      heroChoice,
+      clericChoice,
+      madMagicianChoice,
+      grimReaperChoice,
+      vampireSpawnChoice,
+      vampireChoice,
+      assassinChoice,
+      bedmakerChoices,
+    }));
+  };
+
+  const loadGame = () => {
+    const json = JSON.parse(jsonGameState);
+    setCharacters(json.characters.map((c: any) => Character.build(c)));
+    setTraits(json.traits.map((t: any) => Trait.build(t)));
+    setGossipmongerChoices(json.gossipmongerChoices);
+    setInvestigatorChoice(json.investigatorChoice);
+    setMedicineDoctorChoices(json.medicineDoctorChoices);
+    setGrandParentChoice(json.grandParentChoice);
+    setTownguardChoices(json.townguardChoices);
+    setFortuneTellerChoice(json.fortuneTellerChoice);
+    setExecutedToday(json.executedToday);
+    setBardChoices(json.bardChoices);
+    setDrunkFromBardChoice(json.drunkFromBardChoice);
+    setFortuneTellerChoices(json.fortuneTellerChoices);
+    setPoisonerChoice(json.poisonerChoice);
+    setSpyChoice(json.spyChoice);
+    setHeroChoice(json.heroChoice);
+    setClericChoice(json.clericChoice);
+    setMadMagicianChoice(json.madMagicianChoice);
+    setGrimReaperChoice(json.grimReaperChoice);
+    setVampireSpawnChoice(json.vampireSpawnChoice);
+    setVampireChoice(json.vampireChoice);
+    setAssassinChoice(json.assassinChoice);
+    setBedmakerChoices(json.bedmakerChoices);
   };
 
   return (
@@ -110,6 +163,14 @@ export const Game: FunctionComponent = (): ReactElement => {
         <button onClick={() => setScreen('players')}>Players</button>
         <button onClick={() => setScreen('startGame')}>Start</button>
         <button onClick={() => setScreen('atNight')}>Night</button>
+        <button onClick={saveGame}>Save Game</button>
+        <div style={{
+          display: 'flex',
+          columnGap: '5px',
+        }}>
+          <input value={jsonGameState} onChange={(e) => setJsonGameState(e.target.value)} />
+          <button onClick={loadGame}>Load Game</button>
+        </div>
       </div>
       <div style={{
         padding: '20px',

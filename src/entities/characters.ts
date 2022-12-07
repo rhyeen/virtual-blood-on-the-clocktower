@@ -18,6 +18,24 @@ export class Trait {
     }
   }
 
+  json(): any {
+    return {
+      role: this.role,
+      includeInGame: this.includeInGame,
+      randomNumber: this.randomNumber,
+      player: this.player,
+    };
+  }
+
+  static build(json: any): Trait {
+    const t = new Trait(json.role, json.includeInGame);
+    t.role = json.role;
+    t.includeInGame = json.includeInGame;
+    t.randomNumber = json.randomNumber;
+    t.player = json.player;
+    return t;
+  }
+
   copy(): Trait {
     const tr = new Trait(this.role, this.includeInGame);
     tr.randomNumber = this.randomNumber;
@@ -56,6 +74,32 @@ export class Character {
       this.player = undefined;
       this.sharedWithVillainIfUnused = true;
     }
+  }
+
+  json(): any {
+    return {
+      includeInGame: this.includeInGame,
+      randomNumber: this.randomNumber,
+      killed: this.killed,
+      finalVoteUsed: this.finalVoteUsed,
+      role: this.role,
+      player: this.player,
+      type: this.type,
+      sharedWithVillainIfUnused: this.sharedWithVillainIfUnused,
+    };
+  }
+
+  static build(json: any): Character {
+    const c = new Character(json.role, json.includeInGame, json.type);
+    c.includeInGame = json.includeInGame;
+    c.randomNumber = json.randomNumber;
+    c.killed = json.killed;
+    c.finalVoteUsed = json.finalVoteUsed;
+    c.role = json.role;
+    c.player = json.player;
+    c.type = json.type;
+    c.sharedWithVillainIfUnused = json.sharedWithVillainIfUnuse;
+    return c;
   }
 
   get unused(): boolean {

@@ -1,30 +1,46 @@
-import { FunctionComponent, ReactElement } from 'react';
+import { ChangeEvent, FunctionComponent, ReactElement } from 'react';
 import { Character, Trait } from '../entities/characters';
 import { shuffleArray } from '../utils/shuffle';
 
+type PlayerUndef = string | undefined;
 type CharUndef = Character | undefined;
+
+const NULL = '_NULL';
 
 interface Props {
   characters: Character[];
   traits: Trait[];
-  gossipmongerChoices: [CharUndef, CharUndef];
-  setGossipmongerChoices: (players: [CharUndef, CharUndef]) => void;
-  investigatorChoice: CharUndef;
-  setInvestigatorChoice: (player: CharUndef) => void;
-  medicineDoctorChoices: [CharUndef, CharUndef];
-  setMedicineDoctorChoices: (players: [CharUndef, CharUndef]) => void;
-  grandParentChoice: CharUndef;
-  setGrandParentChoice: (player: CharUndef) => void;
-  townguardChoices: [CharUndef, CharUndef];
-  setTownguardChoices: (players: [CharUndef, CharUndef]) => void;
-  fortuneTellerChoice: CharUndef;
-  setFortuneTellerChoice: (player: CharUndef) => void;
+  gossipmongerChoices: [PlayerUndef, PlayerUndef];
+  setGossipmongerChoices: (players: [PlayerUndef, PlayerUndef]) => void;
+  investigatorChoice: PlayerUndef;
+  setInvestigatorChoice: (player: PlayerUndef) => void;
+  medicineDoctorChoices: [PlayerUndef, PlayerUndef];
+  setMedicineDoctorChoices: (players: [PlayerUndef, PlayerUndef]) => void;
+  grandParentChoice: PlayerUndef;
+  setGrandParentChoice: (player: PlayerUndef) => void;
+  townguardChoices: [PlayerUndef, PlayerUndef];
+  setTownguardChoices: (players: [PlayerUndef, PlayerUndef]) => void;
+  fortuneTellerChoice: PlayerUndef;
+  setFortuneTellerChoice: (player: PlayerUndef) => void;
 }
 
 export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement => {
   const prompts: [Character | Trait, string, ReactElement | undefined][] = [];
   const chs = props.characters;
   const trs = props.traits;
+
+  const charUndef = (player: PlayerUndef): CharUndef => {
+    return chs.find(c => c.player === player);
+  };
+
+  const selectPlayer = (e: ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>): PlayerUndef => {
+    const val = e.target.value;
+    if (val === NULL) {
+      return undefined;
+    }
+    return val;
+  };
+
   const playerCharacters = chs.filter(c => c.player);
   const players = playerCharacters.map(c => c.player || '');
   const minion = chs.find(c => c.type === 'minion' && c.player);
@@ -99,9 +115,9 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
         columnGap: '5px',
       }}>
         <select
-          value={props.gossipmongerChoices[0]?.player}
+          value={props.gossipmongerChoices[0]}
           onChange={(e) => props.setGossipmongerChoices([
-            playerCharacters.find(c => c.player = e.target.value),
+            selectPlayer(e),
             props.gossipmongerChoices[1],
           ])}
         >
@@ -109,10 +125,10 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         <select
-          value={props.gossipmongerChoices[1]?.player}
+          value={props.gossipmongerChoices[1]}
           onChange={(e) => props.setGossipmongerChoices([
             props.gossipmongerChoices[0],
-            playerCharacters.find(c => c.player = e.target.value),
+            selectPlayer(e),
           ])}
         >
           <option value={''} key="_NULL">Select Player</option>
@@ -130,20 +146,20 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
     }
     const registersAsMinion = [
       minion,
-      chs.find(c => c.player === props.investigatorChoice?.player) ?? undefined,
+      chs.find(c => c.player === props.investigatorChoice) ?? undefined,
     ];
     shuffleArray(registersAsMinion);
     prompts.push([investigator, props.investigatorChoice ? `
       You are the Investigator.
-      You know that either ${registersAsMinion[0]?.player} or ${registersAsMinion[1]?.player} is the ${minion?.role} Minion.
+      You know that either ${registersAsMinion[0]} or ${registersAsMinion[1]} is the ${minion?.role} Minion.
     ` : 'Gamemaster: Select a player to appear to be the minion', (
       <div style={{
         display: 'flex',
         columnGap: '5px',
       }}>
         <select
-          value={props.investigatorChoice?.player}
-          onChange={(e) => props.setInvestigatorChoice(playerCharacters.find(c => c.player === e.target.value))}
+          value={props.investigatorChoice}
+          onChange={(e) => props.setInvestigatorChoice(selectPlayer(e))}
         >
           <option value={''} key="_NULL">Registers as Minion</option>
           {playerCharacters.map(c => <option value={c.player} key={c.player}>{`${c.player} (${c.role})`}</option>)}
@@ -165,22 +181,22 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
   const medicineDoctor = chs.find(c => c.role === 'Medicine Doctor' && c.player);
   if (medicineDoctor) {
     const registersAsRole = [
-      chs.find(c => c.player === props.medicineDoctorChoices[0]?.player) ?? undefined,
-      chs.find(c => c.player === props.medicineDoctorChoices[1]?.player) ?? undefined,
+      chs.find(c => c.player === props.medicineDoctorChoices[0]) ?? undefined,
+      chs.find(c => c.player === props.medicineDoctorChoices[1]) ?? undefined,
     ];
     shuffleArray(registersAsRole);
-    prompts.push([medicineDoctor, (props.medicineDoctorChoices[0]?.player && props.medicineDoctorChoices[1]?.player) ? `
+    prompts.push([medicineDoctor, (props.medicineDoctorChoices[0] && props.medicineDoctorChoices[1]) ? `
       You are the Medicine Doctor.
-      You know that either ${registersAsRole[0]?.player} or ${registersAsRole[1]?.player} is the ${props.medicineDoctorChoices[0].role} Townsfolk.
+      You know that either ${registersAsRole[0]} or ${registersAsRole[1]} is the ${charUndef(props.medicineDoctorChoices[0])?.role} Townsfolk.
     ` : 'Gamemaster: Select a Townsfolk and another player to appear as that Townsfolk', (
       <div style={{
         display: 'flex',
         columnGap: '5px',
       }}>
         <select
-          value={props.medicineDoctorChoices[0]?.player}
+          value={props.medicineDoctorChoices[0]}
           onChange={(e) => props.setMedicineDoctorChoices([
-            playerCharacters.find(c => c.player = e.target.value),
+            selectPlayer(e),
             props.medicineDoctorChoices[1],
           ])}
         >
@@ -188,10 +204,10 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
           {playerCharacters.filter(c => c.isGood).map(c => <option value={c.player} key={c.player}>{`${c.player} (${c.role})`}</option>)}
         </select>
         <select
-          value={props.medicineDoctorChoices[1]?.player}
+          value={props.medicineDoctorChoices[1]}
           onChange={(e) => props.setMedicineDoctorChoices([
             props.medicineDoctorChoices[0],
-            playerCharacters.find(c => c.player = e.target.value),
+            selectPlayer(e),
           ])}
         >
           <option value={''} key="_NULL">Registers as Townsfolk</option>
@@ -216,7 +232,7 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
   if (grandParent) {
     prompts.push([grandParent, props.grandParentChoice ? `
       You are the Grandparent.
-      Your grandchild is ${props.grandParentChoice.player} and is the ${props.grandParentChoice.role} Townsfolk.
+      Your grandchild is ${props.grandParentChoice} and is the ${charUndef(props.grandParentChoice)?.role} Townsfolk.
       If the Villain kills your grandchild, you die too.
     ` : 'Gamemaster: Select a player to be the grandchild', (
       <div style={{
@@ -224,8 +240,8 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
         columnGap: '5px',
       }}>
         <select
-          value={props.grandParentChoice?.player}
-          onChange={(e) => props.setGrandParentChoice(playerCharacters.find(c => c.player === e.target.value))}
+          value={props.grandParentChoice}
+          onChange={(e) => props.setGrandParentChoice(selectPlayer(e))}
         >
           <option value={''} key="_NULL">Select Grandchild</option>
           {playerCharacters.filter(c => c.isGood).map(c => <option value={c.player} key={c.player}>{`${c.player} (${c.role})`}</option>)}
@@ -264,9 +280,9 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
         columnGap: '5px',
       }}>
         <select
-          value={props.townguardChoices[0]?.player}
+          value={props.townguardChoices[0]}
           onChange={(e) => props.setTownguardChoices([
-            playerCharacters.find(c => c.player = e.target.value),
+            selectPlayer(e),
             props.townguardChoices[1],
           ])}
         >
@@ -274,10 +290,10 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         <select
-          value={props.townguardChoices[1]?.player}
+          value={props.townguardChoices[1]}
           onChange={(e) => props.setTownguardChoices([
             props.townguardChoices[0],
-            playerCharacters.find(c => c.player = e.target.value),
+            selectPlayer(e),
           ])}
         >
           <option value={''} key="_NULL">Select Player</option>
@@ -299,8 +315,8 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
         columnGap: '5px',
       }}>
         <select
-          value={props.fortuneTellerChoice?.player}
-          onChange={(e) => props.setFortuneTellerChoice(playerCharacters.find(c => c.player === e.target.value))}
+          value={props.fortuneTellerChoice}
+          onChange={(e) => props.setFortuneTellerChoice(selectPlayer(e))}
         >
           <option value={''} key="_NULL">Select Grandchild</option>
           {playerCharacters.filter(c => c.type !== 'villain').map(c => <option value={c.player} key={c.player}>{`${c.player} (${c.role})`}</option>)}
