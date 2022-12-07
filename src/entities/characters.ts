@@ -8,14 +8,6 @@ export class Trait {
     this.role = role;
     this.includeInGame = includeInGame;
     this.randomNumber = -1;
-    // REMOVE
-    if (this.role === 'Saint') {
-      this.player = 'PInvestigator';
-    } else if (this.role === 'Recluse') {
-      this.player = 'PBedmaker';
-    } else {
-      this.player = 'PMedicine Doctor';
-    }
   }
 
   json(): any {
@@ -68,12 +60,6 @@ export class Character {
     this.role = role;
     this.type = type;
     this.sharedWithVillainIfUnused = false;
-    // REMOVE
-    this.player = 'P' + role;
-    if (role === 'Gravekeeper' || role === 'Gossipmonger' || role === 'Ravenkeeper') {
-      this.player = undefined;
-      this.sharedWithVillainIfUnused = true;
-    }
   }
 
   json(): any {
