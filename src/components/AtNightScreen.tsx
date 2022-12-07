@@ -47,7 +47,6 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
   const playerCharacters = chs.filter(c => c.player);
   const players = playerCharacters.map(c => c.player || '');
   const minion = chs.find(c => c.type === 'minion' && c.player);
-  
   const assassinSkipped = props.assassinChoice?.role === 'Assassin';
   const grimReaperSkipped = props.grimReaperChoice?.role === 'Grim Reaper';
 
@@ -528,7 +527,7 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         flexDirection: 'column',
         rowGap: '25px',
       }}>
-        <div key="extrasTop" style={{
+        <div style={{
           display: 'flex',
           columnGap: '40px',
         }}>
@@ -541,32 +540,34 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
           </select>
           <button onClick={reset}>Reset</button>
         </div>
-        { prompts.map((prompt, index) => {
-          const [ ch, p, additionalDetails ] = prompt;
-          return (
-            <div key={index} style={{
-              display: 'flex',
-              flexDirection: 'column',
-              rowGap: '5px',
-            }}>
-              <div style={{
+        <div>
+          { prompts.map((prompt, index) => {
+            const [ ch, p, additionalDetails ] = prompt;
+            return (
+              <div key={index} style={{
                 display: 'flex',
-                columnGap: '10px',
-                fontWeight: 700,
+                flexDirection: 'column',
+                rowGap: '5px',
               }}>
-                <div>{ch.player}</div>
-                <div>|</div>
-                <div>{ch.role}:</div>
+                <div style={{
+                  display: 'flex',
+                  columnGap: '10px',
+                  fontWeight: 700,
+                }}>
+                  <div>{ch.player}</div>
+                  <div>|</div>
+                  <div>{ch.role}:</div>
+                </div>
+                <div style={{
+                  backgroundColor: ch.isDrunk(trs) ? '#dd99dd' : isTempDrunk(ch) ? '#ddbbdd' : undefined,
+                  padding: '5px',
+                }}>{p}</div>
+                {additionalDetails}
               </div>
-              <div style={{
-                backgroundColor: ch.isDrunk(trs) ? '#dd99dd' : isTempDrunk(ch) ? '#ddbbdd' : undefined,
-                padding: '5px',
-              }}>{p}</div>
-              {additionalDetails}
-            </div>
-          );
-        }) }
-        <div key="extrasBottom">
+            );
+          }) }
+        </div>
+        <div>
           <h3>Resulting Deaths</h3>
           {
             waitForDrunks ? waitForDrunks : 
