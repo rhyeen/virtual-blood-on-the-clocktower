@@ -145,14 +145,14 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
       return <div>Cannot have an investigator without a minion.</div>;
     }
     const registersAsMinion = [
-      minion,
-      chs.find(c => c.player === props.investigatorChoice) ?? undefined,
+      minion.player,
+      props.investigatorChoice,
     ];
     shuffleArray(registersAsMinion);
     prompts.push([investigator, props.investigatorChoice ? `
       You are the Investigator.
       You know that either ${registersAsMinion[0]} or ${registersAsMinion[1]} is the ${minion?.role} Minion.
-    ` : 'Gamemaster: Select a player to appear to be the minion', (
+    ` : 'Storyteller: Select a player to appear to be the minion', (
       <div style={{
         display: 'flex',
         columnGap: '5px',
@@ -181,14 +181,14 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
   const medicineDoctor = chs.find(c => c.role === 'Medicine Doctor' && c.player);
   if (medicineDoctor) {
     const registersAsRole = [
-      chs.find(c => c.player === props.medicineDoctorChoices[0]) ?? undefined,
-      chs.find(c => c.player === props.medicineDoctorChoices[1]) ?? undefined,
+      props.medicineDoctorChoices[0],
+      props.medicineDoctorChoices[1],
     ];
     shuffleArray(registersAsRole);
     prompts.push([medicineDoctor, (props.medicineDoctorChoices[0] && props.medicineDoctorChoices[1]) ? `
       You are the Medicine Doctor.
       You know that either ${registersAsRole[0]} or ${registersAsRole[1]} is the ${charUndef(props.medicineDoctorChoices[0])?.role} Townsfolk.
-    ` : 'Gamemaster: Select a Townsfolk and another player to appear as that Townsfolk', (
+    ` : 'Storyteller: Select a Townsfolk and another player to appear as that Townsfolk', (
       <div style={{
         display: 'flex',
         columnGap: '5px',
@@ -234,7 +234,7 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
       You are the Grandparent.
       Your grandchild is ${props.grandParentChoice} and is the ${charUndef(props.grandParentChoice)?.role} Townsfolk.
       If the Villain kills your grandchild, you die too.
-    ` : 'Gamemaster: Select a player to be the grandchild', (
+    ` : 'Storyteller: Select a player to be the grandchild', (
       <div style={{
         display: 'flex',
         columnGap: '5px',
@@ -254,7 +254,7 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
   if (oracle) {
     prompts.push([oracle, `
       You are the Oracle.
-      Once per game, at any time, you may privately ask me any yes/no question.
+      Once per game during the day, you may privately ask me any yes/no question.
       I will answer truthfully.
     `, undefined]);
   }
@@ -309,7 +309,7 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
     You are the Fortune Teller.
     Each night, I'll ask you to choose 2 players and you learn if either is the Villain.
     Note that 1 other player registers as a Villain that is not actually the Villain.
-    ` : 'Gamemaster: Select a player to register as a Villain', (
+    ` : 'Storyteller: Select a player to register as a Villain', (
       <div style={{
         display: 'flex',
         columnGap: '5px',
@@ -318,7 +318,7 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
           value={props.fortuneTellerChoice}
           onChange={(e) => props.setFortuneTellerChoice(selectPlayer(e))}
         >
-          <option value={''} key="_NULL">Select Grandchild</option>
+          <option value={''} key="_NULL">Select Register as Villain</option>
           {playerCharacters.filter(c => c.type !== 'villain').map(c => <option value={c.player} key={c.player}>{`${c.player} (${c.role})`}</option>)}
         </select>
       </div>

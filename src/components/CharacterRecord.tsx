@@ -5,6 +5,7 @@ interface Props {
   character: Character;
   update: (character: Character) => void;
   killOnly?: boolean;
+  note?: string;
 }
 
 export const CharacterRecord: FunctionComponent<Props> = (props): ReactElement => {
@@ -73,6 +74,7 @@ export const CharacterRecord: FunctionComponent<Props> = (props): ReactElement =
           disabled={!!(ch.player || ch.isEvil)}
         /> Share Unused
       </label>}
+      <div style={{ fontSize: '11px',  alignSelf: 'center' }}><i>{props.note}</i></div>
     </div>
   );
 }

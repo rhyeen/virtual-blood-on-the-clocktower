@@ -52,7 +52,7 @@ export const Game: FunctionComponent = (): ReactElement => {
   const [ medicineDoctorChoices, setMedicineDoctorChoices ] = useState<[PlayerUndef, PlayerUndef]>([undefined, undefined]);
   const [ grandParentChoice, setGrandParentChoice ] = useState<PlayerUndef>(undefined);
   const [ townguardChoices, setTownguardChoices ] = useState<[PlayerUndef, PlayerUndef]>([undefined, undefined]);
-  const [ fortuneTellerChoice, setFortuneTellerChoice ] = useState<PlayerUndef>(undefined);
+  const [ fortuneTellerRegisterChoice, setFortuneTellerRegisterChoice ] = useState<PlayerUndef>(undefined);
   const [ executedToday, setExecutedToday ] = useState<PlayerUndef>(undefined);
   const [ bardChoices, setBardChoices ] = useState<[PlayerUndef, PlayerUndef]>([undefined, undefined]);
   const [ drunkFromBardChoice, setDrunkFromBardChoice ] = useState<PlayerUndef>(undefined);
@@ -108,7 +108,7 @@ export const Game: FunctionComponent = (): ReactElement => {
       medicineDoctorChoices,
       grandParentChoice,
       townguardChoices,
-      fortuneTellerChoice,
+      fortuneTellerRegisterChoice,
       executedToday,
       bardChoices,
       drunkFromBardChoice,
@@ -135,7 +135,7 @@ export const Game: FunctionComponent = (): ReactElement => {
     setMedicineDoctorChoices(json.medicineDoctorChoices);
     setGrandParentChoice(json.grandParentChoice);
     setTownguardChoices(json.townguardChoices);
-    setFortuneTellerChoice(json.fortuneTellerChoice);
+    setFortuneTellerRegisterChoice(json.fortuneTellerRegisterChoice);
     setExecutedToday(json.executedToday);
     setBardChoices(json.bardChoices);
     setDrunkFromBardChoice(json.drunkFromBardChoice);
@@ -197,14 +197,17 @@ export const Game: FunctionComponent = (): ReactElement => {
             setGrandParentChoice={setGrandParentChoice}
             townguardChoices={townguardChoices}
             setTownguardChoices={setTownguardChoices}
-            fortuneTellerChoice={fortuneTellerChoice}
-            setFortuneTellerChoice={setFortuneTellerChoice}
+            fortuneTellerChoice={fortuneTellerRegisterChoice}
+            setFortuneTellerChoice={setFortuneTellerRegisterChoice}
           />
         }
         {screen === 'atNight' &&
           <AtNightScreen
             characters={characters}
             traits={traits}
+            fortuneTellerRegisterChoice={fortuneTellerRegisterChoice}
+            townguardChoices={townguardChoices}
+            grandParentChoice={grandParentChoice}
             executedToday={executedToday}
             setExecutedToday={setExecutedToday}
             bardChoices={bardChoices}

@@ -10,6 +10,9 @@ const NULL = '_NULL';
 interface Props {
   characters: Character[];
   traits: Trait[];
+  grandParentChoice: PlayerUndef;
+  fortuneTellerRegisterChoice: PlayerUndef;
+  townguardChoices: [PlayerUndef, PlayerUndef];
   executedToday: PlayerUndef;
   setExecutedToday: (player: PlayerUndef) => void;
   bardChoices: [PlayerUndef, PlayerUndef];
@@ -42,7 +45,7 @@ interface Props {
 }
 
 export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => {
-  const prompts: [Character | Trait, string, ReactElement | undefined][] = [];
+  const prompts: [Character | Trait, string | ReactElement, ReactElement | undefined][] = [];
   const chs = props.characters;
   const trs = props.traits;
 
@@ -63,6 +66,7 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
   const minion = chs.find(c => c.type === 'minion' && c.player);
   const assassinSkipped = charUndef(props.assassinChoice)?.role === 'Assassin';
   const grimReaperSkipped = charUndef(props.grimReaperChoice)?.role === 'Grim Reaper';
+  const villain = chs.find(c => c.type === 'villain' && c.player);
 
   const isTempDrunk = (pl: PlayerUndef): boolean => {
     if (!pl) {
@@ -80,6 +84,24 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
     return `The Hero stopped you from murder tonight, but revealed themselves to be ${hero?.player}.`;
   };
 
+  const evilTwin = chs.find(c => c.role === 'Evil Twin' && c.player);
+  if (evilTwin && !evilTwin.killed && minion?.killed) {
+    prompts.push([evilTwin, (
+      <span>
+        <b>Storyteller, send to Villain: </b>{`
+        ${evilTwin.player} is the Evil Twin and 
+        is taking on the role of your ${minion.role} Minion since they are dead.
+        `}
+        <br /><br />
+        <b>Storyteller, send to Evil Twin: </b>{`
+        The Minion is dead!  The Villain, ${villain?.player}, 
+        now knows that you are the Evil Twin
+        and you will now have the same powers as the ${minion.role} Minion.
+        `}
+      </span>
+    ), undefined]);
+  }
+
   const poisoner = chs.find(c => c.role === 'Poisoner' && c.player);
   if (poisoner && !poisoner.killed) {
     prompts.push([poisoner, `
@@ -91,20 +113,27 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         columnGap: '5px',
       }}>
         <select
-          value={props.poisonerChoice}
+          value={props.poisonerChoice ?? NULL}
           onChange={(e) => props.setPoisonerChoice(selectPlayer(e))}
         >
-          <option value={''} key={NULL}>Select player</option>
+          <option value={NULL} key={NULL}>Select player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
       </div>
     )]);
   }
 
-  const waitForPoisoner = poisoner && !poisoner.killed && !props.poisonerChoice ? 'Must wait for poisoner' : undefined;
+  const waitForPoisoner = poisoner && !poisoner.killed && !props.poisonerChoice ? 'Storyteller: Must wait for poisoner' : undefined;
 
   const spy = chs.find(c => c.role === 'Spy' && c.player);
   if (spy && !spy.killed) {
+    const getTraitsText = () => {
+      const traits = trs.filter(t => t.player === props.spyChoice);
+      if (!traits.length) {
+        return '';
+      }
+      return ' and has the trait(s): ' + traits.map(t => t.role).join(', ');
+    };
     prompts.push([spy, `
       Respond with the name of a player (other than yourself).
       You will learn their role.
@@ -114,14 +143,14 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         columnGap: '5px',
       }}>
         <select
-          value={props.spyChoice}
+          value={props.spyChoice ?? NULL}
           onChange={(e) => props.setSpyChoice(selectPlayer(e))}
         >
-          <option value={''} key={NULL}>Select player</option>
+          <option value={NULL} key={NULL}>Select player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         {props.spyChoice && 
-          <div>{`${props.spyChoice} is the ${charUndef(props.spyChoice)?.role}`}</div>
+          <div>{`${props.spyChoice} is the ${charUndef(props.spyChoice)?.role}${getTraitsText()}`}</div>
         }
       </div>
     )]);
@@ -140,19 +169,19 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         columnGap: '5px',
       }}>
         <select
-          value={props.assassinChoice}
+          value={props.assassinChoice ?? NULL}
           onChange={(e) => props.setAssassinChoice(selectPlayer(e))}
         >
-          <option value={''} key={NULL}>Select player</option>
+          <option value={NULL} key={NULL}>Select player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
           {/* NOTE: we just set it to the assassin because it's conveniant */}
-          <option value={assassin.player} key={assassin.player}>Skip</option>
+          <option value={assassin.player} key={assassin.player}>Storyteller: Skip</option>
         </select>
       </div>
     )]);
   }
 
-  const waitForAssassin = assassin && !assassin.killed && !props.assassinChoice ? 'Must wait for assassin' : undefined;
+  const waitForAssassin = assassin && !assassin.killed && !props.assassinChoice ? 'Storyteller: Must wait for assassin' : undefined;
 
   const bard = chs.find(c => c.role === 'Bard' && c.player);
   if (bard && !bard.killed) {
@@ -167,36 +196,36 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         columnGap: '5px',
       }}>
         <select
-          value={props.bardChoices[0] ?? ''}
+          value={props.bardChoices[0] ?? NULL}
           onChange={(e) => props.setBardChoices([
             selectPlayer(e),
             props.bardChoices[1],
           ])}
         >
-          <option value={''} key={NULL}>Select Player</option>
+          <option value={NULL} key={NULL}>Select Player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         <select
-          value={props.bardChoices[1] ?? ''}
+          value={props.bardChoices[1] ?? NULL}
           onChange={(e) => props.setBardChoices([
             props.bardChoices[0],
             selectPlayer(e),
           ])}
         >
-          <option value={''} key={NULL}>Select Player</option>
+          <option value={NULL} key={NULL}>Select Player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         {!props.bardChoices[0] || !props.bardChoices[1] ?
-          <div>Wait for bard to choose</div>
+          <div>Storyteller: Wait for bard to choose</div>
         :
           <select
-            value={props.drunkFromBardChoice}
+            value={props.drunkFromBardChoice ?? NULL}
             onChange={(e) => props.setDrunkFromBardChoice(selectPlayer(e))}
           >
-            <option value={''} key={NULL}>Drunk Player</option>
+            <option value={NULL} key={NULL}>Storyteller: Drunk Player</option>
             {props.bardChoices.filter(p => charUndef(p)?.isGood).map(p => <option value={p} key={p}>{`${p} (${charUndef(p)?.role})`}</option>)}
             {/* NOTE: we just set it to the bard because it's conveniant */}
-            <option value={bard.player} key={bard.player}>No drunk</option>
+            <option value={bard.player} key={bard.player}>Storyteller: No drunk</option>
           </select>
         }
       </div>
@@ -207,7 +236,7 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
     bard && 
     !bard.killed &&
     (!props.bardChoices[0] || !props.bardChoices[1] || !props.drunkFromBardChoice) ?
-    'Must wait for bard' : undefined
+    'Storyteller: Must wait for bard' : undefined
   );
 
   const waitForDrunks = waitForBard || waitForPoisoner;
@@ -219,8 +248,11 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
     `, undefined]);
   }
 
-  const fortuneTeller = chs.find(c => c.role === 'FortuneTeller' && c.player);
+  const fortuneTeller = chs.find(c => c.role === 'Fortune Teller' && c.player);
   if (fortuneTeller && !fortuneTeller.killed) {
+    const registersAsVillain = (player: string): boolean => {
+      return player === villain?.player || player === props.fortuneTellerRegisterChoice;
+    };
     prompts.push([fortuneTeller, `
       Respond with the name of 2 players (other than yourself) that you want to 
       see if they register as the Villain or not.
@@ -230,26 +262,31 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         columnGap: '5px',
       }}>
         <select
-          value={props.fortuneTellerChoices[0]}
+          value={props.fortuneTellerChoices[0] ?? NULL}
           onChange={(e) => props.setFortuneTellerChoices([
             selectPlayer(e),
             props.fortuneTellerChoices[1],
           ])}
         >
-          <option value={''} key={NULL}>Select Player</option>
+          <option value={NULL} key={NULL}>Select Player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         <select
-          value={props.fortuneTellerChoices[1]}
+          value={props.fortuneTellerChoices[1] ?? NULL}
           onChange={(e) => props.setFortuneTellerChoices([
             props.fortuneTellerChoices[0],
             selectPlayer(e),
           ])}
         >
-          <option value={''} key={NULL}>Select Player</option>
+          <option value={NULL} key={NULL}>Select Player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
-        <div>{ waitForDrunks ? waitForDrunks : '' }</div>
+        <div>{ 
+          waitForDrunks ? waitForDrunks :
+          !props.fortuneTellerChoices[0] || !props.fortuneTellerChoices[1] ? undefined :
+          registersAsVillain(props.fortuneTellerChoices[0]) || registersAsVillain(props.fortuneTellerChoices[1]) ? 'At least one of these players register as a Villain' : 
+          'Neither of these players register as a Villain'
+        }</div>
       </div>
     )]);
   }
@@ -266,10 +303,10 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         columnGap: '5px',
       }}>
         <select
-          value={props.heroChoice}
+          value={props.heroChoice ?? NULL}
           onChange={(e) => props.setHeroChoice(selectPlayer(e))}
         >
-          <option value={''} key={NULL}>Select player</option>
+          <option value={NULL} key={NULL}>Select player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         <div>{ waitForDrunks ? waitForDrunks : '' }</div>
@@ -277,7 +314,7 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
     )]);
   }
 
-  const waitForHero = hero && !hero.killed && !props.heroChoice ? 'Must wait for hero' : undefined;
+  const waitForHero = hero && !hero.killed && !props.heroChoice ? 'Storyteller: Must wait for hero' : undefined;
 
   const cleric = chs.find(c => c.role === 'Cleric' && c.player);
   if (cleric && !cleric.killed) {
@@ -290,10 +327,10 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         columnGap: '5px',
       }}>
         <select
-          value={props.clericChoice}
+          value={props.clericChoice ?? NULL}
           onChange={(e) => props.setClericChoice(selectPlayer(e))}
         >
-          <option value={''} key={NULL}>Select player</option>
+          <option value={NULL} key={NULL}>Select player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         <div>{ waitForDrunks ? waitForDrunks : '' }</div>
@@ -301,7 +338,7 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
     )]);
   }
 
-  const waitForCleric = cleric && !cleric.killed && !props.clericChoice ? 'Must wait for cleric' : undefined;
+  const waitForCleric = cleric && !cleric.killed && !props.clericChoice ? 'Storyteller: Must wait for cleric' : undefined;
   const waitForSavedFromDeath = waitForCleric || waitForHero;
 
   const madMagician = chs.find(c => c.role === 'Mad Magician' && c.player);
@@ -319,10 +356,10 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         columnGap: '5px',
       }}>
         <select
-          value={props.madMagicianChoice}
+          value={props.madMagicianChoice ?? NULL}
           onChange={(e) => props.setMadMagicianChoice(selectPlayer(e))}
         >
-          <option value={''} key={NULL}>Select player</option>
+          <option value={NULL} key={NULL}>Select player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         <div>{ waitForHero ? waitForHero : heroStoppedVillain(madMagician.player) }</div>
@@ -330,7 +367,7 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
     )]);
   }
 
-  const waitForMadMagician = madMagician && !props.madMagicianChoice ? 'Must wait for mad magician' : undefined;
+  const waitForMadMagician = madMagician && !props.madMagicianChoice ? 'Storyteller: Must wait for mad magician' : undefined;
 
   const grimReaper = chs.find(c => c.role === 'Grim Reaper' && c.player);
   if (grimReaper) {
@@ -346,20 +383,20 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         columnGap: '5px',
       }}>
         <select
-          value={props.grimReaperChoice}
+          value={props.grimReaperChoice ?? NULL}
           onChange={(e) => props.setGrimReaperChoice(selectPlayer(e))}
         >
-          <option value={''} key={NULL}>Select player</option>
+          <option value={NULL} key={NULL}>Select player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
           {/* NOTE: we just set it to the grimReaper because it's conveniant */}
-          <option value={grimReaper.player} key={grimReaper.player}>Skip</option>
+          <option value={grimReaper.player} key={grimReaper.player}>Storyteller: Skip</option>
         </select>
         <div>{ waitForHero ? waitForHero : heroStoppedVillain(grimReaper.player) }</div>
       </div>
     )]);
   }
 
-  const waitForGrimReaper = grimReaper && !props.grimReaperChoice ? 'Must wait for grim reaper' : undefined;
+  const waitForGrimReaper = grimReaper && !props.grimReaperChoice ? 'Storyteller: Must wait for grim reaper' : undefined;
 
   const vampire = chs.find(c => c.role === 'Vampire' && c.player);
   if (vampire) {
@@ -378,17 +415,17 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         columnGap: '5px',
       }}>
         <select
-          value={props.vampireSpawnChoice}
+          value={props.vampireSpawnChoice ?? NULL}
           onChange={(e) => props.setVampireSpawnChoice(selectPlayer(e))}
         >
-          <option value={''} key={NULL}>Select player to spawn</option>
+          <option value={NULL} key={NULL}>Select player to spawn</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         <select
-          value={props.vampireChoice}
+          value={props.vampireChoice ?? NULL}
           onChange={(e) => props.setVampireChoice(selectPlayer(e))}
         >
-          <option value={''} key={NULL}>Select player to kill</option>
+          <option value={NULL} key={NULL}>Select player to kill</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         <div>{ waitForHero ? waitForHero : heroStoppedVillain(vampire.player) }</div>
@@ -396,7 +433,7 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
     )]);
   }
 
-  const waitForVampire = vampire && !props.vampireChoice && !props.vampireSpawnChoice ? 'Must wait for vampire' : undefined;
+  const waitForVampire = vampire && !props.vampireChoice && !props.vampireSpawnChoice ? 'Storyteller: Must wait for vampire' : undefined;
   const waitForVillain = waitForMadMagician || waitForGrimReaper || waitForVampire;
 
   const dreamer = chs.find(c => c.role === 'Dreamer' && c.player);
@@ -433,23 +470,23 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
         columnGap: '5px',
       }}>
         <select
-          value={props.bedmakerChoices[0]}
+          value={props.bedmakerChoices[0] ?? NULL}
           onChange={(e) => props.setBedmakerChoices([
             selectPlayer(e),
             props.bedmakerChoices[1],
           ])}
         >
-          <option value={''} key={NULL}>Select Player</option>
+          <option value={NULL} key={NULL}>Select Player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         <select
-          value={props.bedmakerChoices[1]}
+          value={props.bedmakerChoices[1] ?? NULL}
           onChange={(e) => props.setBedmakerChoices([
             props.bedmakerChoices[0],
             selectPlayer(e),
           ])}
         >
-          <option value={''} key={NULL}>Select Player</option>
+          <option value={NULL} key={NULL}>Select Player</option>
           {players.map(p => <option value={p} key={p}>{p}</option>)}
         </select>
         {
@@ -465,47 +502,88 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
   }
 
   const getResultingDeaths = (): ReactElement => {
-    const deadPlayers = [];
+    const deadPlayers: [player: string, note: string][] = [];
     if (props.executedToday) {
-      deadPlayers.push(props.executedToday)
+      deadPlayers.push([props.executedToday, 'Executed Today'])
     }
-    if (props.assassinChoice) {
-      deadPlayers.push(props.assassinChoice);
+    if (props.assassinChoice && assassin?.player !== props.assassinChoice) {
+      deadPlayers.push([props.assassinChoice, 'Assassinated']);
     }
-    let villainKill: PlayerUndef = undefined;
+    let villainKill: [player: string, note: string] | undefined = undefined;
     if (props.madMagicianChoice && !heroStoppedVillain(madMagician?.player)) {
-      villainKill = props.madMagicianChoice;
-    }
-    if (props.grimReaperChoice && !heroStoppedVillain(grimReaper?.player)) {
-      villainKill = props.grimReaperChoice;
-    }
-    if (props.vampireChoice && !heroStoppedVillain(vampire?.player)) {
-      villainKill = props.vampireChoice;
+      villainKill = [props.madMagicianChoice, 'Killed by Villain'];
     }
     if (
+      props.grimReaperChoice && 
+      !heroStoppedVillain(grimReaper?.player) && 
+      props.grimReaperChoice !== grimReaper?.player
+    ) {
+      villainKill = [props.grimReaperChoice, 'Killed by Villain'];
+    }
+    if (
+      props.vampireChoice &&
+      !heroStoppedVillain(vampire?.player) &&
+      props.vampireChoice !== vampire?.player
+    ) {
+      villainKill = [props.vampireChoice, 'Killed by Villain'];
+    }
+    if (
+      villainKill &&
       !isTempDrunk(bard?.player) &&
       charUndef(props.bardChoices[0])?.isGood && 
       charUndef(props.bardChoices[1])?.isGood && 
-      props.bardChoices.find(c => c === villainKill)
+      props.bardChoices.find(p => villainKill && p === villainKill[0])
     ) {
-      villainKill = undefined;
+      villainKill[1] = 'NO KILL!  Villain stopped by Bard';
     }
-    if (!isTempDrunk(cleric?.player) && props.clericChoice === villainKill) {
-      villainKill = undefined;
+    if (
+      villainKill &&
+      !isTempDrunk(cleric?.player) && 
+      props.clericChoice === villainKill[0]
+    ) {
+      villainKill[1] = 'NO KILL!  Villain stopped by Cleric';
+    }
+    const townguard = chs.find(c => c.role === 'Townguard');
+    if (
+      villainKill &&
+      !isTempDrunk(townguard?.player) &&
+      charUndef(props.townguardChoices[0])?.isGood &&
+      charUndef(props.townguardChoices[1])?.isGood &&
+      props.townguardChoices.find(p => villainKill && p === villainKill[0])
+    ) {
+      villainKill[1] = 'NO KILL!  Villain stopped by Townguard';
     }
     if (villainKill) {
       deadPlayers.push(villainKill);
+      if (villainKill[0] === props.grandParentChoice && !villainKill[1].startsWith('NO KILL!')) {
+        const grandparentPlayer = chs.find(c => c.role === 'Grandparent')?.player;
+        if (grandparentPlayer) {
+          deadPlayers.push([grandparentPlayer, 'Villain killed grandchild']);
+        } else {
+          console.error('grandchild killed but could not find grandparent');
+        }
+      }
     }
     return (
-      <div>
-        {deadPlayers.map((player, index) => {
-          const character = charUndef(player);
-          if (!character) {
-            console.error('no character for player: ' + player);
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        rowGap: '4px',
+      }}>
+        {deadPlayers.map((playerNote, index) => {
+          const ch = charUndef(playerNote[0]);
+          if (!ch) {
+            console.error('no character for player: ' + playerNote[0]);
           }
           return (
             <div key={index}>
-              <CharacterRecord killOnly character={character as Character} update={(ch) => props.updateCharacter(ch)} />
+              <CharacterRecord note={playerNote[1]} killOnly character={ch as Character} update={(ch) => props.updateCharacter(ch)} />
+              {playerNote[0] === chs.find(c => c.role === 'Ravenkeeper')?.player &&
+                <div style={{
+                  backgroundColor: ch?.isDrunk(trs) ? '#dd99dd' : isTempDrunk(ch?.player) ? '#ddbbdd' : undefined,
+                  padding: '5px',
+                }}>You were killed tonight!  As the Ravenkeeper, you need to name a player to learn their role.</div>
+              }
             </div>
           );
         })}
@@ -542,15 +620,28 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
           columnGap: '40px',
         }}>
           <select
-            value={props.executedToday}
+            value={props.executedToday ?? NULL}
             onChange={(e) => props.setExecutedToday(selectPlayer(e))}
           >
-            <option value={''} key="_NULL">Executed Today</option>
+            <option value={NULL} key={NULL}>Executed Today</option>
             {playerCharacters.map(c => <option value={c.player} key={c.player}>{`${c.player} (${c.role})`}</option>)}
           </select>
           <button onClick={reset}>Reset</button>
         </div>
-        <div>
+        {trs.find(t => t.player === props.executedToday && t.role === 'Saint') &&
+          <h3 style={{ color: '#ff6666' }}>Game over!  The Saint was executed!</h3>
+        }
+        {villain?.player === props.executedToday && chs.find(c => c.role === 'Mastermind' && c.player && !c.killed) &&
+          <h3 style={{ color: '#ff6666' }}>Game isn't over yet!  One last day for the Matermind to conquer!</h3>
+        }
+        {villain?.player === props.executedToday && !chs.find(c => c.role === 'Mastermind' && c.player && !c.killed) &&
+          <h3 style={{ color: '#ff6666' }}>Game over!  The Villain was executed!</h3>
+        }
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          rowGap: '25px',
+        }}>
           { prompts.map((prompt, index) => {
             const [ ch, p, additionalDetails ] = prompt;
             return (

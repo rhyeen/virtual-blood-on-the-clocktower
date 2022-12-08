@@ -84,7 +84,7 @@ export class Character {
     c.role = json.role;
     c.player = json.player;
     c.type = json.type;
-    c.sharedWithVillainIfUnused = json.sharedWithVillainIfUnuse;
+    c.sharedWithVillainIfUnused = json.sharedWithVillainIfUnused;
     return c;
   }
 
