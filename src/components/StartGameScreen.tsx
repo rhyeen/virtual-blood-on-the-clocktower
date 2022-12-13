@@ -168,7 +168,7 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
     )]);
   }
 
-  const bedmaker = chs.find(c => c.role === 'Bed Maker' && c.player);
+  const bedmaker = chs.find(c => c.role === 'Bedmaker' && c.player);
   if (bedmaker) {
     prompts.push([bedmaker, `
       You are the Bedmaker.
