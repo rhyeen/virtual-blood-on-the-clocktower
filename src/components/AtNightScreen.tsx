@@ -675,13 +675,13 @@ export const AtNightScreen: FunctionComponent<Props> = (props): ReactElement => 
           </select>
           <button onClick={reset}>Reset Night Phase</button>
         </div>
-        {trs.find(t => t.player === props.executedToday && t.role === 'Saint') &&
+        {props.executedToday && trs.find(t => t.player === props.executedToday && t.role === 'Saint') &&
           <h3 style={{ color: '#ff6666' }}>Game over!  The Saint was executed!</h3>
         }
-        {villain?.player === props.executedToday && chs.find(c => c.role === 'Mastermind' && c.player && !c.killed) &&
+        {props.executedToday && villain?.player === props.executedToday && chs.find(c => c.role === 'Mastermind' && c.player && !c.killed) &&
           <h3 style={{ color: '#ff6666' }}>Game is NOT over yet!  One last day for the Matermind to conquer!</h3>
         }
-        {villain?.player === props.executedToday && !chs.find(c => c.role === 'Mastermind' && c.player && !c.killed) &&
+        {props.executedToday && villain?.player === props.executedToday && !chs.find(c => c.role === 'Mastermind' && c.player && !c.killed) &&
           <h3 style={{ color: '#ff6666' }}>Game over!  The Villain was executed!</h3>
         }
         <div style={{
