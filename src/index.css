@@ -11,3 +11,26 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.copyText {
+  cursor: pointer;
+}
+
+.copyText:hover {
+  text-decoration: underline;
+  color: #870848;
+}
+
+.copyText:active {
+  color: #4a0427;
+}
+
+.playerChoice {
+  color: #870848;
+  border: 2px solid #870848;
+}
+
+.storyTellerChoice {
+  color: #04727a;
+  border: 2px solid #04727a;
+}
