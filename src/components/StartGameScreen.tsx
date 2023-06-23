@@ -55,7 +55,7 @@ export const StartGameScreen: FunctionComponent<Props> = (props): ReactElement =
   const unusedGood = chs.filter(c => !c.player && c.sharedWithVillainIfUnused);
 
   if (unusedGood.length !== 3) {
-    return <div><StorytellerText text="Must share at least three Townsfolk with Villain" /></div>;
+    return <div><StorytellerText text="Must share three Townsfolk with Villain" /></div>;
   }
 
   if (minion && villain) {
